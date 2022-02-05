@@ -1,4 +1,4 @@
-package gitr
+package gittr
 
 import (
 	geojson "github.com/paulmach/go.geojson"

@@ -1,4 +1,4 @@
-package gitr
+package gittr
 
 import "fmt"
 

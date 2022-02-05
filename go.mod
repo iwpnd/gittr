@@ -1,4 +1,4 @@
-module github.com/iwpnd/gitr
+module github.com/iwpnd/gittr
 
 go 1.17
 
