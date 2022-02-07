@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-// test helper to appoximate coordinate equality
+// test helper to appoximate float64 equality
 func approxEqual(want, got, tolerance float64) bool {
 	diff := math.Abs(want - got)
 	mean := math.Abs(want+got) / 2
@@ -128,15 +128,23 @@ func TestExtentContains(t *testing.T) {
 		p        []float64
 		expected bool
 	}{
+		// inside
 		{
 			e:        Extent{s: 0, w: 0, e: 1, n: 1},
 			p:        []float64{0.5, 0.5},
 			expected: true,
 		},
+		// outside
 		{
 			e:        Extent{s: 0, w: 0, e: 1, n: 1},
 			p:        []float64{2, 2},
 			expected: false,
+		},
+		// touches
+		{
+			e:        Extent{s: 0, w: 0, e: 1, n: 1},
+			p:        []float64{0, 0},
+			expected: true,
 		},
 	}
 
