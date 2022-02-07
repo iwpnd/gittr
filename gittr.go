@@ -96,6 +96,24 @@ func bearing(start, end []float64) float64 {
 	return math.Mod((o*180/math.Pi + 360), 360.0)
 }
 
+func distance(start, end []float64) float64 {
+	lat1 := degreeToRad(start[1])
+	lat2 := degreeToRad(end[1])
+	dlat := degreeToRad(end[1] - start[1])
+	dlng := degreeToRad(end[0] - start[0])
+
+	a := (math.Sin(dlat/2)*
+		math.Sin(dlat/2) +
+		math.Cos(lat1)*
+			math.Cos(lat2)*
+			math.Sin(dlng/2)*
+			math.Sin(dlng/2))
+
+	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
+
+	return earthRadius * c
+}
+
 // Extent creates bounding box for input Feature
 func (f Feature) Extent() (Extent, error) {
 	if f.BoundingBox != nil && len(f.BoundingBox) != 0 {
