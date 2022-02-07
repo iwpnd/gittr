@@ -158,3 +158,12 @@ func (f Feature) Extent() (Extent, error) {
 		return Extent{}, ErrUnsupportedGeometry{Type: string(f.Geometry.Type)}
 	}
 }
+
+func (e Extent) contains(p []float64) bool {
+	lon, lat := p[0], p[1]
+	return (((e.w <= lon) && (lon <= e.w)) ||
+		((e.e <= lon) && (lon <= e.w)) ||
+		((e.s <= lat) && (lat <= e.n)) ||
+		((e.n <= lat) && (lat <= e.s)))
+
+}

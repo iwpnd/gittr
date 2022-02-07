@@ -122,6 +122,33 @@ func TestExtent(t *testing.T) {
 	}
 }
 
+func TestExtentContains(t *testing.T) {
+	test := []struct {
+		e        Extent
+		p        []float64
+		expected bool
+	}{
+		{
+			e:        Extent{s: 0, w: 0, e: 1, n: 1},
+			p:        []float64{0.5, 0.5},
+			expected: true,
+		},
+		{
+			e:        Extent{s: 0, w: 0, e: 1, n: 1},
+			p:        []float64{2, 2},
+			expected: false,
+		},
+	}
+
+	for _, test := range test {
+		got := test.e.contains(test.p)
+
+		if got != test.expected {
+			t.Errorf("expected %+v, got: %+v", got, test.expected)
+		}
+	}
+}
+
 func TestTerminal(t *testing.T) {
 	test := []struct {
 		origin, expected  []float64
