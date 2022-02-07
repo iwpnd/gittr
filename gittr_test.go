@@ -5,23 +5,11 @@ import (
 	"testing"
 )
 
-func equalPositions(a, b []float64) bool {
-	if len(a) != len(b) {
-		return false
-	}
-
-	if a[0] != b[0] || a[1] != b[1] {
-		return false
-	}
-
-	return true
-}
-
-func TestBbox(t *testing.T) {
+func TestExtent(t *testing.T) {
 	tests := []struct {
 		tcase       string
 		input       []byte
-		expected    Bbox
+		expected    Extent
 		expectedErr ErrUnsupportedGeometry
 	}{
 		{
@@ -43,11 +31,11 @@ func TestBbox(t *testing.T) {
                     ]
                 }
             }`),
-			expected: Bbox{
-				sw: []float64{-74.004862, 40.726251},
-				ne: []float64{-73.999586, 40.730316},
-				se: []float64{-73.999586, 40.726251},
-				nw: []float64{-74.004862, 40.730316},
+			expected: Extent{
+				w: -74.004862,
+				s: 40.726251,
+				e: -73.999586,
+				n: 40.730316,
 			},
 		},
 		{
@@ -68,11 +56,11 @@ func TestBbox(t *testing.T) {
                     ]
                 }
             }`),
-			expected: Bbox{
-				sw: []float64{-74.004862, 40.726251},
-				ne: []float64{-73.999586, 40.730316},
-				se: []float64{-73.999586, 40.726251},
-				nw: []float64{-74.004862, 40.730316},
+			expected: Extent{
+				w: -74.004862,
+				s: 40.726251,
+				e: -73.999586,
+				n: 40.730316,
 			},
 		},
 		{
@@ -96,7 +84,7 @@ func TestBbox(t *testing.T) {
 			t.Fatalf("cannot unmarshal test feature: %v", err)
 		}
 
-		got, err := f.ToBbox()
+		got, err := f.Extent()
 		if err != nil && err != test.expectedErr {
 			t.Fatal("something went wrong")
 		}
@@ -106,17 +94,17 @@ func TestBbox(t *testing.T) {
 			break
 		}
 
-		if !equalPositions(got.sw, test.expected.sw) {
-			t.Fatal("case:", test.tcase, "- SW", got.sw, "does not match expected ", test.expected.sw)
+		if got.w != test.expected.w {
+			t.Fatal("case:", test.tcase, "- W", got.w, "does not match expected ", test.expected.w)
 		}
-		if !equalPositions(got.ne, test.expected.ne) {
-			t.Fatal("case:", test.tcase, "- NE", got.ne, "does not match expected ", test.expected.ne)
+		if got.s != test.expected.s {
+			t.Fatal("case:", test.tcase, "- S", got.s, "does not match expected ", test.expected.s)
 		}
-		if !equalPositions(got.se, test.expected.se) {
-			t.Fatal("case:", test.tcase, "- SE", got.se, "does not match expected ", test.expected.se)
+		if got.e != test.expected.e {
+			t.Fatal("case:", test.tcase, "- E", got.e, "does not match expected ", test.expected.e)
 		}
-		if !equalPositions(got.nw, test.expected.nw) {
-			t.Fatal("case:", test.tcase, "- NW", got.nw, "does not match expected ", test.expected.nw)
+		if got.n != test.expected.n {
+			t.Fatal("case:", test.tcase, "- N", got.n, "does not match expected ", test.expected.n)
 		}
 	}
 }
