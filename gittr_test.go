@@ -286,6 +286,9 @@ func TestCreatePointsOnEdge(t *testing.T) {
 			expected: [][]float64{{13.37, 52.25}, {13.35531, 52.25}},
 		},
 		{
+			// distance between start and end approx 680m
+			// since distance is NOT overshooting right from the start
+			// it should return an array of points.
 			tcase:    "should return array with 8 pts overshooting end",
 			start:    []float64{13.37, 52.25},
 			end:      []float64{13.36, 52.25},

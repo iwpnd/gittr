@@ -179,7 +179,6 @@ func (e Extent) contains(p []float64) bool {
 func CreatePointsOnEdge(start, end []float64, distance float64) [][]float64 {
 	b := bearing(start, end)
 	d := haversine(start, end)
-	t := 0.0
 
 	pts := [][]float64{start}
 
@@ -190,10 +189,11 @@ func CreatePointsOnEdge(start, end []float64, distance float64) [][]float64 {
 		return pts
 	}
 
-	for t < d {
+	// append points until travelled > distance between start and end
+	// last point in pts array is the new start for terminal
+	for t := 0.0; t < d; t += distance {
 		s := pts[len(pts)-1]
 		p := terminal(s, distance, b)
-		t += distance
 		pts = append(pts, p)
 	}
 
