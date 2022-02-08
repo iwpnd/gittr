@@ -96,7 +96,7 @@ func bearing(start, end []float64) float64 {
 	return math.Mod((o*180/math.Pi + 360), 360.0)
 }
 
-func distance(start, end []float64) float64 {
+func haversine(start, end []float64) float64 {
 	lat1 := degreeToRad(start[1])
 	lat2 := degreeToRad(end[1])
 	dlat := degreeToRad(end[1] - start[1])
@@ -115,7 +115,9 @@ func distance(start, end []float64) float64 {
 }
 
 // Extent creates bounding box for input Feature
-func (f Feature) Extent() (Extent, error) {
+// if a bounding box is present, it returns early
+// if theres no bounding box it'll be created an attached
+func (f *Feature) Extent() (Extent, error) {
 	if f.BoundingBox != nil && len(f.BoundingBox) != 0 {
 
 		w := f.BoundingBox[0]
@@ -153,6 +155,8 @@ func (f Feature) Extent() (Extent, error) {
 			}
 		}
 
+		f.BoundingBox = []float64{s, e, n, w}
+
 		return Extent{s, e, n, w}, nil
 	default:
 		return Extent{}, ErrUnsupportedGeometry{Type: string(f.Geometry.Type)}
@@ -165,5 +169,33 @@ func (e Extent) contains(p []float64) bool {
 		((e.e <= lon) && (lon <= e.w)) ||
 		((e.s <= lat) && (lat <= e.n)) ||
 		((e.n <= lat) && (lat <= e.s)))
+}
 
+// CreatePointsOnEdge creates points on and along a
+// line spanning from {start} to {end} every {distance} meters
+// if input {distance} is bigger than the haversine distance
+// between {start} and {end} it creates the last point
+// {distance}m from {start} overshooting {end}
+func CreatePointsOnEdge(start, end []float64, distance float64) [][]float64 {
+	b := bearing(start, end)
+	d := haversine(start, end)
+	t := 0.0
+
+	pts := [][]float64{start}
+
+	// if desired distance overshoots the endpoint
+	// use terminal of overshot and return early
+	if distance > d {
+		pts = append(pts, terminal(start, distance, b))
+		return pts
+	}
+
+	for t < d {
+		s := pts[len(pts)-1]
+		p := terminal(s, distance, b)
+		t += distance
+		pts = append(pts, p)
+	}
+
+	return pts
 }

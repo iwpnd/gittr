@@ -6,6 +6,19 @@ import (
 	"testing"
 )
 
+// test helper to compare two Positions
+func equalPositions(a, b []float64) bool {
+	if len(a) != len(b) {
+		return false
+	}
+
+	if a[0] != b[0] || a[1] != b[1] {
+		return false
+	}
+
+	return true
+}
+
 // test helper to appoximate float64 equality
 func approxEqual(want, got, tolerance float64) bool {
 	diff := math.Abs(want - got)
@@ -16,6 +29,18 @@ func approxEqual(want, got, tolerance float64) bool {
 	}
 
 	return (diff / mean) < tolerance
+}
+
+func approxEqualPosition(a, b []float64, tolerance float64) bool {
+	if len(a) != len(b) {
+		return false
+	}
+
+	if !approxEqual(a[0], b[0], tolerance) || !approxEqual(a[1], b[1], tolerance) {
+		return false
+	}
+
+	return true
 }
 
 func TestExtent(t *testing.T) {
@@ -105,6 +130,10 @@ func TestExtent(t *testing.T) {
 		// err is expected and equal expectedErr
 		if err == test.expectedErr {
 			break
+		}
+
+		if f.BoundingBox == nil {
+			t.Error("bounding box cannot be nil after .Extent()")
 		}
 
 		if got.w != test.expected.w {
@@ -248,6 +277,48 @@ func TestBearing(t *testing.T) {
 
 		if !approxEqual(got, test.expected, 0.001) {
 			t.Errorf("expected %+v, got: %+v", got, test.expected)
+		}
+	}
+}
+
+func TestCreatePointsOnEdge(t *testing.T) {
+	test := []struct {
+		tcase      string
+		start, end []float64
+		distance   float64
+		expected   [][]float64
+	}{
+		{
+			// distance between start and end approx 680m
+			// since distance is overshooting, so expected[len(expected-1)]
+			// and start are supposed to be ~1000m apart
+			tcase:    "overshooting",
+			start:    []float64{13.37, 52.25},
+			end:      []float64{13.36, 52.25},
+			distance: 1000,
+			expected: [][]float64{{13.37, 52.25}, {13.35531, 52.25}},
+		},
+		{
+			tcase:    "should return array with 8 pts overshooting end",
+			start:    []float64{13.37, 52.25},
+			end:      []float64{13.36, 52.25},
+			distance: 100,
+			expected: [][]float64{{13.37, 52.25}, {13.35531, 52.25}},
+		},
+	}
+
+	for _, test := range test {
+		got := CreatePointsOnEdge(test.start, test.end, test.distance)
+
+		start := got[0]
+		end := got[len(got)-1]
+
+		if !approxEqualPosition(start, test.expected[0], 0.001) {
+			t.Errorf("%s - first position: expected %+v, got: %+v", test.tcase, got, test.expected)
+		}
+
+		if !approxEqualPosition(end, test.expected[len(test.expected)-1], 0.001) {
+			t.Errorf("%s - last position: expected %+v, got: %+v", test.tcase, got, test.expected)
 		}
 	}
 }
