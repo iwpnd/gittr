@@ -6,19 +6,6 @@ import (
 	"testing"
 )
 
-// test helper to compare two Positions
-func equalPositions(a, b []float64) bool {
-	if len(a) != len(b) {
-		return false
-	}
-
-	if a[0] != b[0] || a[1] != b[1] {
-		return false
-	}
-
-	return true
-}
-
 // test helper to appoximate float64 equality
 func approxEqual(want, got, tolerance float64) bool {
 	diff := math.Abs(want - got)
