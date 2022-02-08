@@ -270,45 +270,53 @@ func TestBearing(t *testing.T) {
 
 func TestCreatePointsOnEdge(t *testing.T) {
 	test := []struct {
-		tcase      string
-		start, end []float64
-		distance   float64
-		expected   [][]float64
+		tcase          string
+		start, end     []float64
+		distance       float64
+		expectedLine   [][]float64
+		expectedLength int
 	}{
 		{
 			// distance between start and end approx 680m
 			// since distance is overshooting, so expected[len(expected-1)]
 			// and start are supposed to be ~1000m apart
-			tcase:    "overshooting",
-			start:    []float64{13.37, 52.25},
-			end:      []float64{13.36, 52.25},
-			distance: 1000,
-			expected: [][]float64{{13.37, 52.25}, {13.35531, 52.25}},
+			tcase:          "overshooting",
+			start:          []float64{13.37, 52.25},
+			end:            []float64{13.36, 52.25},
+			distance:       1000,
+			expectedLine:   [][]float64{{13.37, 52.25}, {13.35531, 52.25}},
+			expectedLength: 2,
 		},
 		{
 			// distance between start and end approx 680m
 			// since distance is NOT overshooting right from the start
 			// it should return an array of points.
-			tcase:    "should return array with 8 pts overshooting end",
-			start:    []float64{13.37, 52.25},
-			end:      []float64{13.36, 52.25},
-			distance: 100,
-			expected: [][]float64{{13.37, 52.25}, {13.35531, 52.25}},
+			tcase:          "should return array with 8 pts overshooting end",
+			start:          []float64{13.37, 52.25},
+			end:            []float64{13.36, 52.25},
+			distance:       100,
+			expectedLine:   [][]float64{{13.37, 52.25}, {13.35971728, 52.25}},
+			expectedLength: 8,
 		},
 	}
 
 	for _, test := range test {
 		got := CreatePointsOnEdge(test.start, test.end, test.distance)
+		l := len(got)
 
 		start := got[0]
-		end := got[len(got)-1]
+		end := got[l-1]
 
-		if !approxEqualPosition(start, test.expected[0], 0.001) {
-			t.Errorf("%s - first position: expected %+v, got: %+v", test.tcase, got, test.expected)
+		if l != test.expectedLength {
+			t.Errorf("%s - expected length %+v, got: %+v", test.tcase, got, test.expectedLength)
 		}
 
-		if !approxEqualPosition(end, test.expected[len(test.expected)-1], 0.001) {
-			t.Errorf("%s - last position: expected %+v, got: %+v", test.tcase, got, test.expected)
+		if !approxEqualPosition(start, test.expectedLine[0], 0.00001) {
+			t.Errorf("%s - first position: expected %+v, got: %+v", test.tcase, got, test.expectedLine)
+		}
+
+		if !approxEqualPosition(end, test.expectedLine[len(test.expectedLine)-1], 0.00001) {
+			t.Errorf("%s - last position: expected %+v, got: %+v", test.tcase, got, test.expectedLine)
 		}
 	}
 }
