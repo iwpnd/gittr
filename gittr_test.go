@@ -268,7 +268,7 @@ func TestBearing(t *testing.T) {
 	}
 }
 
-func TestCreatePointsOnEdge(t *testing.T) {
+func TestPointsOnline(t *testing.T) {
 	test := []struct {
 		tcase          string
 		start, end     []float64
@@ -301,7 +301,7 @@ func TestCreatePointsOnEdge(t *testing.T) {
 	}
 
 	for _, test := range test {
-		got := CreatePointsOnEdge(test.start, test.end, test.distance)
+		got := pointsOnLine(test.start, test.end, test.distance)
 		l := len(got)
 
 		start := got[0]
