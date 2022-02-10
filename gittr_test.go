@@ -168,7 +168,7 @@ func TestExtentContains(t *testing.T) {
 		got := test.e.contains(test.p)
 
 		if got != test.expected {
-			t.Errorf("expected %+v, got: %+v", got, test.expected)
+			t.Errorf("expected %+v, got: %+v", test.expected, got)
 		}
 	}
 }
@@ -263,7 +263,7 @@ func TestBearing(t *testing.T) {
 		got := bearing(test.start, test.end)
 
 		if !approxEqual(got, test.expected, 0.001) {
-			t.Errorf("expected %+v, got: %+v", got, test.expected)
+			t.Errorf("expected %+v, got: %+v", test.expected, got)
 		}
 	}
 }
@@ -308,15 +308,68 @@ func TestCreatePointsOnEdge(t *testing.T) {
 		end := got[l-1]
 
 		if l != test.expectedLength {
-			t.Errorf("%s - expected length %+v, got: %+v", test.tcase, got, test.expectedLength)
+			t.Errorf("%s - expected length %+v, got: %+v", test.tcase, test.expectedLength, got)
 		}
 
 		if !approxEqualPosition(start, test.expectedLine[0], 0.00001) {
-			t.Errorf("%s - first position: expected %+v, got: %+v", test.tcase, got, test.expectedLine)
+			t.Errorf("%s - first position: expected %+v, got: %+v", test.tcase, test.expectedLine, got)
 		}
 
 		if !approxEqualPosition(end, test.expectedLine[len(test.expectedLine)-1], 0.00001) {
-			t.Errorf("%s - last position: expected %+v, got: %+v", test.tcase, got, test.expectedLine)
+			t.Errorf("%s - last position: expected %+v, got: %+v", test.tcase, test.expectedLine, got)
 		}
+	}
+}
+
+func TestBuildGrid(t *testing.T) {
+	tests := []struct {
+		tcase          string
+		input          []byte
+		distance       float64
+		expectedLength int
+	}{
+		{
+			tcase: "feature has bbox",
+			input: []byte(`{
+              "type": "Feature",
+              "properties": {"id": 1},
+              "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                      [
+                        [0,0],
+                        [1,0],
+                        [1,1],
+                        [0,1],
+                        [0,0]
+                      ]
+                    ]
+              }
+            }`),
+			distance:       27798,
+			expectedLength: 20,
+		},
+	}
+
+	for _, test := range tests {
+		var f Feature
+		err := json.Unmarshal(test.input, &f)
+		if err != nil {
+			t.Fatalf("cannot unmarshal test feature: %v", err)
+		}
+
+		fc, err := f.ToGrid(test.distance)
+		if err != nil {
+			t.Fatalf("failed to build grid: %v", err)
+		}
+
+		if len(fc.Features) != test.expectedLength {
+			t.Errorf("%s - expected features to have length: %+v, got: %+v",
+				test.tcase,
+				test.expectedLength,
+				len(fc.Features),
+			)
+		}
+
 	}
 }

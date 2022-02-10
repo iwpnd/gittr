@@ -16,19 +16,9 @@ type Extent struct {
 	w float64
 }
 
-// Geometry extends geojson.Geometry
-type Geometry struct {
-	geojson.Geometry
-}
-
 // Feature extends geojson.Feature
 type Feature struct {
-	geojson.Feature
-}
-
-// FeatureCollection extends geojson.FeatureCollection
-type FeatureCollection struct {
-	geojson.FeatureCollection
+	*geojson.Feature
 }
 
 func radToDegree(rad float64) float64 {
@@ -171,6 +161,14 @@ func (e Extent) contains(p []float64) bool {
 		((e.n <= lat) && (lat <= e.s)))
 }
 
+func (e Extent) toFeature() *geojson.Feature {
+	p := [][][]float64{
+		{{e.w, e.s}, {e.w, e.n}, {e.e, e.n}, {e.e, e.s}, {e.w, e.s}},
+	}
+	f := geojson.NewPolygonFeature(p)
+	return f
+}
+
 // CreatePointsOnEdge creates points on and along a
 // line spanning from {start} to {end} every {distance} meters
 // if input {distance} is bigger than the haversine distance
@@ -198,4 +196,36 @@ func CreatePointsOnEdge(start, end []float64, distance float64) [][]float64 {
 	}
 
 	return pts
+}
+
+// ToGrid cuts features bounding box into a nxn grid
+func (f *Feature) ToGrid(distance float64) (*geojson.FeatureCollection, error) {
+	e, err := f.Extent()
+
+	if err != nil {
+		return &geojson.FeatureCollection{}, err
+	}
+
+	columns := CreatePointsOnEdge([]float64{e.w, e.n}, []float64{e.e, e.n}, distance)
+	rows := CreatePointsOnEdge([]float64{e.w, e.n}, []float64{e.w, e.s}, distance)
+
+	c := &geojson.FeatureCollection{}
+
+	for i := 0; i < len(columns)-1; i++ {
+		for j := 0; j < len(rows)-1; j++ {
+			s := rows[j+1][1]
+			w := columns[i][0]
+			n := rows[j][1]
+			e := columns[i+1][0]
+
+			ext := Extent{s: s, e: e, w: w, n: n}
+			extf := ext.toFeature()
+			extf.BoundingBox = []float64{e, s, w, n}
+			extf.Properties = f.Properties
+
+			c.AddFeature(extf)
+		}
+	}
+
+	return c, nil
 }
