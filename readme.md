@@ -1,7 +1,7 @@
 # gittr
 
 Gittr cuts an input polygon into equal sized grid cells. Grid cells are only created
-if they either touch or are within the input polygon.
+if they either touch or are within the input polygon. It also accounts for polygon holes.
 
 ## Installation
 
