@@ -183,7 +183,9 @@ func (e *Extent) intersects(polygon [][][]float64) bool {
 	return false
 }
 
-// ToGrid cuts features bounding box into a nxn grid
+// ToGrid cuts features bounding box into a nxm grid
+// grid cells are only created if the cell either touches
+// the input polygon or is within the input polygon
 func (f *Feature) ToGrid(distance float64) (*geojson.FeatureCollection, error) {
 	e, err := f.Extent()
 
