@@ -1,6 +1,6 @@
 # gittr
 
-Gittr cuts an input polygon into equal sized grid cells. Grid cells are only created
+Gittr (from Gitter /ˈɡɪtɐ/, the german word for grid) cuts an input polygon into equal sized grid cells. Grid cells are only created
 if they either touch or are within the input polygon. It also accounts for polygon holes.
 
 ## Installation
@@ -15,14 +15,14 @@ go get -u github.com/iwpnd/gittr
 package main
 
 import (
-  "encoding/json"
-  "fmt"
+	"encoding/json"
+	"fmt"
 
-  "github.com/iwpnd/gittr"
-  )
+	"github.com/iwpnd/gittr"
+)
 
 func main() {
-  raw := []byte(`{
+	raw := []byte(`{
               "type": "Feature",
               "properties": {"id": 3},
               "geometry": {
@@ -61,16 +61,19 @@ func main() {
               }
           }`)
 
-  var f gittr.Feature
-  err := json.Unmarshal(raw,&f)
-  if err != nil {
-      panic("something went wrong")
-  }
+	var f gittr.Feature
+	err := json.Unmarshal(raw, &f)
+	if err != nil {
+		panic("something went wrong")
+	}
 
-  // create grid with a cell size of 100m
-  grid := f.ToGrid(100)
+	// create grid with a cell size of 100m
+	grid, err := f.ToGrid(100)
+	if err != nil {
+		panic(err)
+	}
 
-  fmt.Println("cell count: %v", len(grid.Features))
+	fmt.Printf("cell count: %v\n", len(grid.Features))
 }
 ```
 
