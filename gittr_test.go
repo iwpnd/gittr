@@ -426,7 +426,7 @@ func TestBuildGrid(t *testing.T) {
                 }
             }`),
 			distance:       100,
-			expectedLength: 460,
+			expectedLength: 287,
 		},
 	}
 
@@ -438,6 +438,7 @@ func TestBuildGrid(t *testing.T) {
 		}
 
 		fc, err := f.ToGrid(test.distance)
+
 		if err != nil {
 			t.Fatalf("failed to build grid: %v", err)
 		}

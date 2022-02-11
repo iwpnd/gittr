@@ -3,17 +3,28 @@ package gittr
 import (
 	"math"
 
+	"github.com/iwpnd/piper"
 	geojson "github.com/paulmach/go.geojson"
 )
 
 const earthRadius = 6371008.8
 
+// SpatialRelation to enumerate the spatial relation between extent and feature
+type SpatialRelation string
+
+// Spatial relations
+const (
+	Touches SpatialRelation = "touches"
+	Within  SpatialRelation = "within"
+)
+
 // Extent contains all 4 Positions of a bounding box
 type Extent struct {
-	s float64
-	e float64
-	n float64
-	w float64
+	s        float64
+	e        float64
+	n        float64
+	w        float64
+	relation SpatialRelation
 }
 
 // Feature extends geojson.Feature
@@ -105,7 +116,7 @@ func haversine(start, end []float64) float64 {
 // Extent creates bounding box for input Feature
 // if a bounding box is present, it returns early
 // if theres no bounding box it'll be created an attached
-func (f *Feature) Extent() (Extent, error) {
+func (f *Feature) Extent() (*Extent, error) {
 	if f.BoundingBox != nil && len(f.BoundingBox) != 0 {
 
 		w := f.BoundingBox[0]
@@ -113,7 +124,7 @@ func (f *Feature) Extent() (Extent, error) {
 		e := f.BoundingBox[2]
 		n := f.BoundingBox[3]
 
-		return Extent{s, e, n, w}, nil
+		return &Extent{s: s, e: e, n: n, w: w}, nil
 	}
 
 	switch f.Geometry.Type {
@@ -145,10 +156,31 @@ func (f *Feature) Extent() (Extent, error) {
 
 		f.BoundingBox = []float64{s, e, n, w}
 
-		return Extent{s, e, n, w}, nil
+		return &Extent{s: s, e: e, n: n, w: w}, nil
 	default:
-		return Extent{}, ErrUnsupportedGeometry{Type: string(f.Geometry.Type)}
+		return &Extent{}, ErrUnsupportedGeometry{Type: string(f.Geometry.Type)}
 	}
+}
+
+func (e *Extent) intersects(polygon [][][]float64) bool {
+	counter := 0
+	pts := [][]float64{{e.w, e.s}, {e.w, e.n}, {e.e, e.n}, {e.e, e.s}}
+
+	for i := range pts {
+		if piper.Pip(pts[i], polygon) {
+			counter++
+		}
+	}
+
+	if counter >= 1 && counter < 4 {
+		e.relation = Touches
+		return true
+	} else if counter == 4 {
+		e.relation = Within
+		return true
+	}
+
+	return false
 }
 
 // ToGrid cuts features bounding box into a nxn grid
@@ -172,11 +204,13 @@ func (f *Feature) ToGrid(distance float64) (*geojson.FeatureCollection, error) {
 			e := columns[i+1][0]
 
 			ext := Extent{s: s, e: e, w: w, n: n}
-			extf := ext.toFeature()
-			extf.BoundingBox = []float64{e, s, w, n}
-			extf.Properties = f.Properties
 
-			c.AddFeature(extf)
+			if ext.intersects(f.Geometry.Polygon) {
+				extf := ext.toFeature()
+				extf.BoundingBox = []float64{e, s, w, n}
+				extf.Properties = f.Properties
+				c.AddFeature(extf)
+			}
 		}
 	}
 
