@@ -4,6 +4,7 @@ import (
 	"math"
 
 	"github.com/iwpnd/piper"
+	"github.com/iwpnd/qhav"
 	geojson "github.com/paulmach/go.geojson"
 )
 
@@ -93,24 +94,6 @@ func bearing(start, end []float64) float64 {
 	o := math.Atan2(a, b)
 
 	return math.Mod((o*180/math.Pi + 360), 360.0)
-}
-
-func haversine(start, end []float64) float64 {
-	lat1 := degreeToRad(start[1])
-	lat2 := degreeToRad(end[1])
-	dlat := degreeToRad(end[1] - start[1])
-	dlng := degreeToRad(end[0] - start[0])
-
-	a := (math.Sin(dlat/2)*
-		math.Sin(dlat/2) +
-		math.Cos(lat1)*
-			math.Cos(lat2)*
-			math.Sin(dlng/2)*
-			math.Sin(dlng/2))
-
-	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
-
-	return earthRadius * c
 }
 
 // Extent creates bounding box for input Feature
@@ -242,7 +225,7 @@ func (e Extent) toFeature() *geojson.Feature {
 // {distance}m from {start} overshooting {end}
 func pointsOnLine(start, end []float64, distance float64) [][]float64 {
 	b := bearing(start, end)
-	d := haversine(start, end)
+	d := qhav.Haversine(start, end, qhav.InMeters())
 
 	pts := [][]float64{start}
 
